@@ -17,7 +17,7 @@ SquarePhish is an advanced phishing tool that uses a technique combining the OAu
                      _________
                     |         | /(
                     | O       |/ (
-                    |>        |\ (  v0.1.0
+                    |>        |\ (  v2.0.0
                     |_________| \(
 
 usage: squish.py [-h] {email,server} ...
@@ -36,7 +36,7 @@ modules:
 
 ## Attack Steps
 
-An attacker can use the `email` module of SquarePhish to send a malicious QR code email to a victim. The default pretext is that the victim is required to update their Microsoft MFA authentication to continue using mobile email. The current client ID in use is the Microsoft Authenticator App.
+An attacker can use the `email` module of SquarePhish to send a malicious QR code email to a victim. The default pretext is that the victim is required to update their Microsoft Authentication Broker Token to continue using mobile email. The current client ID in use is the Microsoft Authentication Broker.
 
 > By sending a QR code first, the attacker can avoid prematurely starting the OAuth Device Code flow that lasts only 15 minutes.
 
@@ -143,20 +143,20 @@ SMTP_PASSWORD        = ""                                                       
 [EMAIL]
 SQUAREPHISH_SERVER   = ""                                                                       # Required: Provide IP address/domain name of hosted SquarePhish server
 SQUAREPHISH_PORT     = 8443                                                                     # Hosted SquarePhish server port, defaulted to 8443 (this should match the below server value)
-SQUAREPHISH_ENDPOINT = "/mfa"                                                                   # Hosted SquarePhish endpoint to trigger OAuth Device Code flow, defaulted to an MFA pretext (this should match the below server value)
+SQUAREPHISH_ENDPOINT = "/broker_auth"                                                                   # Hosted SquarePhish endpoint to trigger OAuth Device Code flow, defaulted to a Microsoft Authentication Broker pretext (this should match the below server value)
 FROM_EMAIL           = "admin@square.phish"                                                     # Default FROM address when sending an email
-SUBJECT              = "ACTION REQUIRED: Multi-Factor Authentication (MFA) Update"              # Default SUBJECT when sending an email, defauled to an MFA pretext
-EMAIL_TEMPLATE       = "pretexts/mfa/qrcode_email.html"                                         # Email body template for QR code email to victim
+SUBJECT              = "ACTION REQUIRED:  Microsoft Office 365 Token has Expired"               # Default SUBJECT when sending an email, defauled to an MFA pretext
+EMAIL_TEMPLATE       = "pretexts/broker_auth/qrcode_email.html"                                 # Email body template for QR code email to victim
 
 [SERVER]
 PORT                 = 8443
 FROM_EMAIL           = "admin@square.phish"                                                     # Default FROM address when sending an email
-SUBJECT              = "ACTION REQUIRED: Multi-Factor Authentication (MFA) Update"              # Default SUBJECT when sending an email, defauled to an MFA pretext
-CLIENT_ID            = "4813382a-8fa7-425e-ab75-3b753aab3abb"                                   # Authenticating client ID, defaulted to Microsoft Authenticator App
-ENDPOINT             = "/mfa"                                                                   # Hosted endpoint to trigger OAuth Device Code flow, defaulted to an MFA pretext
+SUBJECT              = "ACTION REQUIRED:  Microsoft Office 365 Token has Expired"               # Default SUBJECT when sending an email, defauled to an MFA pretext
+CLIENT_ID            = "29d9ed98-a469-4536-ade2-f981bc1d605e"                                   # Authenticating client ID, defaulted to Microsoft Authentication Broker
+ENDPOINT             = "/broker_auth"                                                           # Hosted endpoint to trigger OAuth Device Code flow, defaulted to a Microsoft Authentication Broker pretext
 CERT_CRT             = ""                                                                       # Server SSL certificate .crt file
 CERT_KEY             = ""                                                                       # Server SSL certificate .key file
-EMAIL_TEMPLATE       = "pretexts/mfa/devicecode_email.html"                                     # Email body template for device code email to victim
+EMAIL_TEMPLATE       = "pretexts/broker_auth/devicecode_email.html"                             # Email body template for device code email to victim
 PERMISSION_SCOPE     = ".default offline_access profile openid"                                 # OAuth permission scope - https://docs.microsoft.com/en-us/azure/active-directory/develop/v2-permissions-and-consent
 ```
 
@@ -187,3 +187,9 @@ There are several HTTP response headers defined in the [utils.py](squarephish/ut
     "strict-transport-security": "max-age=31536000",
 }
 ```
+
+## v2.0.0 Update
+
+Updates have been made to SquarePhish to use the Microsoft Authentication Broker Client ID as the default client. Using this client it is possible to obtain Primary Refresh Tokens using the [gimmePRT](./gimmePRT/README.md) subtool.
+
+This code and technique is based on the research done by [Dirk-jan](https://x.com/_dirkjan) via this [blog post](https://dirkjanm.io/phishing-for-microsoft-entra-primary-refresh-tokens/). The code heavily relies on the [ROADtools](https://github.com/dirkjanm/ROADtools) library and much of the functionality is taken directly from [roadtx](https://github.com/dirkjanm/ROADtools/tree/master/roadtx).  
