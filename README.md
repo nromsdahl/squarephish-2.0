@@ -1,4 +1,4 @@
-# SquarePhish
+# SquarePhish 2.0
 
 SquarePhish is an advanced phishing tool that uses a technique combining the OAuth Device code authentication flow and QR codes.
 
