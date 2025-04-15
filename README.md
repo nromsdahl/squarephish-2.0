@@ -22,7 +22,7 @@ SquarePhish is an advanced phishing tool that uses a technique combining the OAu
 
 usage: squish.py [-h] {email,server} ...
 
-SquarePhish -- v0.1.0
+SquarePhish -- v2.0.0
 
 optional arguments:
   -h, --help      show this help message and exit
