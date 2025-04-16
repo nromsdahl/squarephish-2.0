@@ -58,6 +58,43 @@ class QRCodeEmail:
             logging.error(f"Error generating QR code: {e}")
             return None
 
+    def _generate_qrcode_ascii(
+            self,
+            server: str,
+            port: int,
+            endpoint: str,
+            email: str,
+            url: str,
+        ) -> str:
+            """Generate an ASCII QR code for a given URL
+            :param server:   malicious server domain/IP
+            :param port:     port malicious server is running on
+            :param endpoint: malicious server endpoint to request
+            :param email:    TO email address of victim
+            :param url:      URL if over riding default
+            :returns:        ASCII QR code HTML snippet
+            """
+            try:
+                endpoint = endpoint.strip("/")
+                if url is None:
+                    url = f"https://{server}:{port}/{endpoint}?email={email}"
+
+                qrcode = pyqrcode.create(url)
+                ascii_qrcode = ""
+                for c in qrcode.text():
+                    if c == "\n":
+                        ascii_qrcode += "<br/>\n"
+                    elif c == "1":
+                        ascii_qrcode += "██"
+                    else:
+                        ascii_qrcode += "&nbsp;&nbsp;"
+
+                return ascii_qrcode
+
+            except Exception as e:
+                logging.error(f"Error generating ASCII QR code: {e}")
+                return None
+
     @classmethod
     def send_qrcode(
         cls,
@@ -73,35 +110,55 @@ class QRCodeEmail:
         :param emailer: emailer object to send emails
         :returns:       bool if the email was successfully sent
         """
-        qrcode = cls._generate_qrcode(
-            cls,
-            config.get("EMAIL", "SQUAREPHISH_SERVER"),
-            config.get("EMAIL", "SQUAREPHISH_PORT"),
-            config.get("EMAIL", "SQUAREPHISH_ENDPOINT"),
-            email,
-            url,
-        )
-
-        if not qrcode:
-            logging.error("Failed to generate QR code")
-            return False
-
         msg = EmailMessage()
         msg["To"] = email
         msg["From"] = config.get("EMAIL", "FROM_EMAIL")
-        msg["Subject"] = config.get("EMAIL", "SUBJECT")
+        msg["Subject"] = config.get("EMAIL", "SUBJECT")        
 
         email_template = config.get("EMAIL", "EMAIL_TEMPLATE")
-        msg.set_content(email_template, subtype="html")
-        msg.add_alternative(email_template, subtype="html")
+        
+        # Handle ASCII QR Code
+        if config.get("EMAIL", "QRCODE_ASCII") == "true":
+            qrcode = cls._generate_qrcode_ascii(
+                cls,
+                config.get("EMAIL", "SQUAREPHISH_SERVER"),
+                config.get("EMAIL", "SQUAREPHISH_PORT"),
+                config.get("EMAIL", "SQUAREPHISH_ENDPOINT"),
+                email,
+                url,
+            )
 
-        # Create a new MIME image to embed into the email as inline
-        logo = MIMEImage(qrcode)
-        logo.add_header("Content-ID", f"<qrcode.png>")  # <img src"cid:qrcode.png">
-        logo.add_header("X-Attachment-Id", "qrcode.png")
-        logo["Content-Disposition"] = f"inline; filename=qrcode.png"
+            if not qrcode:
+                logging.error("Failed to generate ASCII QR code")
+                return False
+            
+            msg.set_content(email_template % qrcode, subtype="html")
 
-        msg.get_payload()[1].make_mixed()
-        msg.get_payload()[1].attach(logo)
+        # Handle QR Code image
+        else:
+            msg.set_content(email_template, subtype="html")
+            msg.add_alternative(email_template, subtype="html")
+
+            qrcode = cls._generate_qrcode(
+                cls,
+                config.get("EMAIL", "SQUAREPHISH_SERVER"),
+                config.get("EMAIL", "SQUAREPHISH_PORT"),
+                config.get("EMAIL", "SQUAREPHISH_ENDPOINT"),
+                email,
+                url,
+            )
+
+            if not qrcode:
+                logging.error("Failed to generate QR code")
+                return False
+
+            # Create a new MIME image to embed into the email as inline
+            logo = MIMEImage(qrcode)
+            logo.add_header("Content-ID", f"<qrcode.png>")  # <img src"cid:qrcode.png">
+            logo.add_header("X-Attachment-Id", "qrcode.png")
+            logo["Content-Disposition"] = f"inline; filename=qrcode.png"
+
+            msg.get_payload()[1].make_mixed()
+            msg.get_payload()[1].attach(logo)
 
         return emailer.send_email(msg)
