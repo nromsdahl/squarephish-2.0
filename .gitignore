@@ -52,6 +52,7 @@ releases/
 squarephish
 squarephish.exe
 squarephish-*.zip
+!cmd/squarephish/
 
 # Python files
 venv/
