@@ -1,0 +1,182 @@
+{{ define "body" }}
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2"><i class="bi bi-envelope-fill me-2"></i>Send Email</h1>
+            </div>
+
+            <form id="emailForm">
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Recipients</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="recipientsTextarea" class="form-label">Recipients</label>
+                            <textarea class="form-control" id="recipientsTextarea" name="recipients" rows="2" placeholder="Enter recipient emails, separated by new lines"></textarea>
+                        </div>
+                        <button type="button" class="btn btn-outline-secondary" id="uploadRecipientsFileButton"><i class="bi bi-upload me-2"></i>Upload File</button>
+                        <input type="file" class="d-none" id="recipientsFileInput" multiple>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">QR Code Email Body</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="emailBody" class="form-label">Email Body (Raw HTML)</label>
+                            <textarea class="form-control" id="emailBody" name="emailBody" rows="10" placeholder="Enter raw HTML for the email body"></textarea>
+                        </div>
+
+                        <div class="form-check form-switch">
+                            <input class="form-check-input" type="checkbox" role="switch" id="emailBodyASCII" name="emailBodyASCII" value="true">
+                            <label class="form-check-label" for="emailBodyASCII">ASCII QR Code</label>
+                        </div>
+
+                        <p class="text-muted">
+                            QR code email body requires <code>&lt;img src="cid:qrcode"&gt;</code> to insert the QR code image.<br/>
+                            QR code email body requires <code>{QR_CODE}</code> to insert the QR code ASCII string.
+                        </p>
+
+                        <button type="button" class="btn btn-outline-secondary" id="uploadHtmlButton"><i class="bi bi-upload me-2"></i>Upload File</button>
+                        <input type="file" class="d-none" id="htmlFileInput" accept=".html">
+
+                        <button type="button" class="btn btn-secondary" id="previewButton">
+                            <i class="bi bi-eye-fill me-2"></i>Open Preview
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-top">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-send-fill me-2"></i>Send Email
+                    </button>
+                </div>
+            </form>
+{{ end }}
+
+{{ define "scripts" }}
+         <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                // --- Preview Email Body ---
+                const previewButton = document.getElementById('previewButton');
+
+                previewButton.addEventListener('click', function () {
+                    const emailBody = document.getElementById('emailBody');
+
+                    const previewWindow = window.open('', '_blank', 'width=800,height=600');
+                    previewWindow.document.open();
+                    previewWindow.document.write(emailBody.value);
+                    previewWindow.document.close();
+                });
+
+
+                // --- Upload Recipients File ---
+                const uploadRecipientsFileButton = document.getElementById('uploadRecipientsFileButton');
+                const recipientsFileInput = document.getElementById('recipientsFileInput');
+
+                uploadRecipientsFileButton.addEventListener('click', function () {
+                    recipientsFileInput.click();
+                });
+
+                recipientsFileInput.addEventListener('change', function () {
+                    const recipientsTextarea = document.getElementById('recipientsTextarea');
+
+                    const files = recipientsFileInput.files;
+                    if (files.length > 0) {
+                        const reader = new FileReader();
+                        let allRecipients = '';
+
+                        const readFile = (index) => {
+                            if (index >= files.length) {
+                                recipientsTextarea.value += allRecipients; // Keep newlines
+                                recipientsFileInput.value = ''; // Reset file input
+                                return;
+                            }
+
+                            const file = files[index];
+                            reader.onload = function (e) {
+                                const content    = e.target.result;
+                                const recipients = content.split(/,|\n/).map(email => email.trim()).filter(email => email).join('\n');
+                                allRecipients   += recipients + '\n';
+                                readFile(index + 1);
+                            };
+                            reader.readAsText(file);
+                        };
+
+                        readFile(0);
+                    }
+                });
+
+
+                // --- Upload HTML File ---
+                const uploadHtmlButton = document.getElementById('uploadHtmlButton');
+                const htmlFileInput = document.getElementById('htmlFileInput');
+
+                uploadHtmlButton.addEventListener('click', function () {
+                    htmlFileInput.click();
+                });
+
+                htmlFileInput.addEventListener('change', function () {
+                    const emailBodyTextarea = document.getElementById('emailBody');
+
+                    const file = htmlFileInput.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            emailBodyTextarea.value = e.target.result;
+                            htmlFileInput.value = ''; // Reset file input
+                        };
+                        reader.readAsText(file);
+                    }
+                });
+
+
+                // --- Submit Form ---
+                const emailForm = document.getElementById('emailForm');
+                emailForm.addEventListener('submit', function (event) {
+                    event.preventDefault();
+
+                    // Create a FormData object from the form
+                    // Handle newline and comma parsing on the server side
+                    const formData = new URLSearchParams(new FormData(emailForm));
+
+                    // Send the form data to the server
+                    fetch('/email', {
+                        method: 'POST',
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                        },
+                        body: formData
+                    })
+                    .then(response => response.text())
+                    .then(data => {
+                        showAlert('success', data);
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showAlert('danger', 'An error occurred while sending the email.');
+                    });
+                });
+
+                function showAlert(type, message) {
+                    const alert = document.createElement('div');
+                    alert.className = `alert alert-${type} alert-dismissible fade show`;
+                    alert.role = 'alert';
+                    alert.innerHTML = `
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    `;
+                    alertPlaceholder.appendChild(alert);
+
+                    // Automatically remove the alert after a few seconds
+                    setTimeout(() => {
+                        alert.classList.remove('show');
+                        alert.classList.add('fade');
+                        setTimeout(() => alert.remove(), 150);
+                    }, 5000);
+                }
+            });
+        </script>
+{{ end }}

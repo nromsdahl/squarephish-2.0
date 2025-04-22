@@ -1,0 +1,37 @@
+body {
+    padding-top: 2rem;
+    padding-bottom: 2rem;
+    /* Smooth theme transition */
+    transition: background-color 0.3s ease, color 0.3s ease;
+}
+.container {
+    max-width: 960px;
+}
+.card + .card {
+    margin-top: 1.5rem;
+}
+/* Ensure cards and inputs adapt */
+.card, .form-control, .form-select {
+    transition: background-color 0.3s ease, color 0.3s ease, border-color 0.3s ease;
+}
+/* Style for the theme toggle button */
+#theme-toggler {
+    min-width: 40px; /* Ensure button doesn't resize drastically */
+    text-align: center;
+}
+.navbar .btn {
+    min-width: 40px;
+    text-align: center;
+}
+main {
+    padding-top: 1rem;
+} /* Added main wrapper */
+
+.alert-fixed {
+    position:fixed; 
+    top: 0px; 
+    left: 0px; 
+    width: 100%;
+    z-index:9999; 
+    border-radius:0px
+}

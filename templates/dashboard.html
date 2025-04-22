@@ -1,0 +1,52 @@
+{{ define "body" }}
+            <div class="d-flex justify-content-center flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2">SquarePhish 2.0</h1>
+            </div>
+    
+            <div class="row">
+                <div class="col-md-6 mb-6">
+                    <div class="card text-center shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title text-muted">Emails Sent</h5>
+                            <p class="card-text metric-value">{{ .EmailsSent }}</p>
+                        </div>
+                    </div>
+                </div>
+                <div class="col-md-6 mb-6">
+                    <div class="card text-center shadow-sm">
+                        <div class="card-body">
+                            <h5 class="card-title text-muted">QR Codes Scanned</h5>
+                            <p class="card-text metric-value">{{ .EmailsScanned }}</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Credentials Table -->
+            <div class="mt-4">
+                <h3>Credentials</h3>
+                <table class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Email</th>
+                            <th>Token</th>
+                            <th>Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        {{ range .Credentials }}
+                        <tr>
+                            <td>{{ .Email }}</td>
+                            <td>{{ if gt (len .Token.AccessToken) 20 }}{{ printf "%.20s..." .Token.AccessToken }}{{ else }}{{ .Token.AccessToken }}{{ end }}</td>
+                            <td><a href="/token?email={{ .Email }}" target="_blank">View</a></td>
+                        </tr>
+                        {{ end }}
+                    </tbody>
+                </table>
+            </div>
+
+            <br/><br/>
+            <div class="mt-4 p-4 bg-body-secondary rounded">
+                <p align="center">Visit <a target="_blank" href="https://github.com/nromsdahl/squarephish2">SquarePhish2</a> to learn more.</p>
+            </div>
+{{ end }}{{ define "scripts" }}{{ end }}

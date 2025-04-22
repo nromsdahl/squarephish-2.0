@@ -1,0 +1,173 @@
+{{ define "body" }}
+            <div class="d-flex justify-content-between flex-wrap flex-md-nowrap align-items-center pt-3 pb-2 mb-3 border-bottom">
+                <h1 class="h2"><i class="bi bi-gear-fill me-2"></i>Configuration Settings</h1>
+            </div>
+
+            <form id="configForm">
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">SMTP Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="smtpHost" class="form-label">SMTP Host</label>
+                                <input type="text" class="form-control" id="smtpHost" name="smtpHost" placeholder="e.g. localhost" value="{{ .SMTPConfig.Host }}">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="smtpPort" class="form-label">Port</label>
+                                <input type="text" class="form-control" id="smtpPort" name="smtpPort" placeholder="e.g. 465" value="{{ .SMTPConfig.Port }}">
+                            </div>
+                        </div>
+                        <div class="mb-3">
+                            <label for="smtpUsername" class="form-label">Username</label>
+                            <input type="text" class="form-control" id="smtpUsername" name="smtpUsername" placeholder="e.g. username" value="{{ .SMTPConfig.Username }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="smtpPassword" class="form-label">Password</label>
+                            <input type="text" class="form-control" id="smtpPassword" name="smtpPassword" placeholder="e.g. password" value="{{ .SMTPConfig.Password }}">
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">SquarePhish Server Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-8 mb-3">
+                                <label for="phishHost" class="form-label">Host</label>
+                                <input type="text" class="form-control" id="phishHost" name="phishHost" placeholder="e.g. 0.0.0.0" value="{{ .SquarePhishConfig.Host }}">
+                            </div>
+                            <div class="col-md-4 mb-3">
+                                <label for="phishPort" class="form-label">Port</label>
+                                <input type="text" class="form-control" id="phishPort" name="phishPort" placeholder="e.g. 443" value="{{ .SquarePhishConfig.Port }}">
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Email Settings</h5>
+                    </div>
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <label for="emailSubject" class="form-label">Subject</label>
+                            <input type="text" class="form-control" id="emailSubject" name="emailSubject" placeholder="e.g. Subject" value="{{ .EmailConfig.Subject }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="emailSender" class="form-label">Sender</label>
+                            <input type="text" class="form-control" id="emailSender" name="emailSender" placeholder="e.g. Sender" value="{{ .EmailConfig.Sender }}">
+                        </div>
+                        <div class="mb-3">
+                            <label for="emailBody" class="form-label">Device Code Email Body</label>
+                            <textarea class="form-control" id="emailBody" name="emailBody" rows="10" placeholder="Enter raw HTML for the email body">{{ .EmailConfig.Body }}</textarea>
+                        </div>
+                        <p class="text-muted">Device code email body requires <code>{DEVICE_CODE}</code> to insert the device code.</p>
+
+                        <button type="button" class="btn btn-outline-secondary" id="uploadHtmlButton"><i class="bi bi-upload me-2"></i>Upload File</button>
+                        <input type="file" class="d-none" id="htmlFileInput" accept=".html">
+
+                        <button type="button" class="btn btn-secondary" id="previewButton">
+                            <i class="bi bi-eye-fill me-2"></i>Open Preview
+                        </button>
+                    </div>
+                </div>
+
+                <div class="mt-4 pt-3 border-top">
+                    <button type="submit" class="btn btn-primary btn-lg">
+                        <i class="bi bi-save-fill me-2"></i>Save Settings
+                    </button>
+                </div>
+
+            </form>
+{{ end }}
+{{ define "scripts" }}
+        <script>
+            document.addEventListener('DOMContentLoaded', function () {
+                // --- Preview Email Body ---
+                const previewButton = document.getElementById('previewButton');
+                
+                previewButton.addEventListener('click', function () {
+                    const emailBody = document.getElementById('emailBody');
+
+                    const previewWindow = window.open('', '_blank', 'width=800,height=600');
+                    previewWindow.document.open();
+                    previewWindow.document.write(emailBody.value);
+                    previewWindow.document.close();
+                });
+
+
+                // --- Upload HTML File ---
+                const uploadHtmlButton = document.getElementById('uploadHtmlButton');
+                const htmlFileInput = document.getElementById('htmlFileInput');
+
+                uploadHtmlButton.addEventListener('click', function () {
+                    htmlFileInput.click();
+                });
+
+                htmlFileInput.addEventListener('change', function () {
+                    const emailBodyTextarea = document.getElementById('emailBody');
+
+                    const file = htmlFileInput.files[0];
+                    if (file) {
+                        const reader = new FileReader();
+                        reader.onload = function (e) {
+                            emailBodyTextarea.value = e.target.result;
+                            htmlFileInput.value = ''; // Reset file input
+                        };
+                        reader.readAsText(file);
+                    }
+                });
+
+
+                // --- Submit Form ---
+                const configForm = document.getElementById('configForm');
+                const alertPlaceholder = document.getElementById('alertPlaceholder');
+
+                configForm.addEventListener('submit', function (event) {
+                    event.preventDefault();
+
+                    // Create a FormData object from the form
+                    const formData = new URLSearchParams(new FormData(configForm));
+
+                    // Send the form data to the server
+                    fetch('/config', {
+                        method: 'POST',
+                        headers: {
+                            "Content-Type": "application/x-www-form-urlencoded",
+                        },
+                        body: formData
+                    })
+                    .then(response => response.text())
+                    .then(data => {
+                        showAlert('success', data); // Display the server response
+                    })
+                    .catch(error => {
+                        console.error('Error:', error);
+                        showAlert('danger', 'An error occurred while saving the configuration.');
+                    });
+                });
+
+                function showAlert(type, message) {
+                    const alert = document.createElement('div');
+                    alert.className = `alert alert-${type} alert-dismissible fade show`;
+                    alert.role = 'alert';
+                    alert.innerHTML = `
+                        ${message}
+                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                    `;
+                    alertPlaceholder.appendChild(alert);
+
+                    // Automatically remove the alert after a few seconds
+                    setTimeout(() => {
+                        alert.classList.remove('show');
+                        alert.classList.add('fade');
+                        setTimeout(() => alert.remove(), 150);
+                    }, 5000);
+                }
+            });
+        </script>
+{{ end }}

@@ -1,0 +1,14 @@
+{
+	"dashboard_server": {
+		"listen_url": "127.0.0.1:8080",
+		"cert_path": "",
+		"key_path": "",
+		"use_tls": false
+	},
+	"phish_server": {
+		"listen_url": "0.0.0.0:8443",
+		"cert_path": "server.crt",
+		"key_path": "server.key",
+		"use_tls": true
+	}
+}
