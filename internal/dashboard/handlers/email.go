@@ -100,14 +100,14 @@ func SendEmailHandler(w http.ResponseWriter, r *http.Request) {
 
 		// Send email with QR code based on ASCII or image
 		if emailBodyType == "qrCode" {
-			err = email.SendQREmail(smtpConfig, emailConfig.Sender, recipients, emailConfig.Subject, emailBody, qrCode)
+			err = email.SendQREmail(smtpConfig, emailConfig.Sender, []string{recipient}, emailConfig.Subject, emailBody, qrCode)
 		} else {
 			if emailBodyType == "asciiQrCode" {
 				emailBody = strings.Replace(emailBody, "{QR_CODE}", qrCodeASCII, -1)
 			} else {
 				emailBody = strings.Replace(emailBody, "{URL}", url, -1)
 			}
-			err = email.SendEmail(smtpConfig, emailConfig.Sender, recipients, emailConfig.Subject, emailBody)
+			err = email.SendEmail(smtpConfig, emailConfig.Sender, []string{recipient}, emailConfig.Subject, emailBody)
 		}
 		if err != nil {
 			utils.RespondWithErrorMessage(w, "Failed to send email to "+recipient, err)

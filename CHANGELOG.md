@@ -10,6 +10,10 @@ All notable changes to this project will be documented in this file.
 - Support for custom Entra configuration (client id, scope, tenant)
 - Support for a custom User Agent on backend requests to Microsoft
 
+### Fixed
+
+- Bug in the send email loop that, instead of sending each email to one recipient at a time, would send each email to *all* recipients
+
 
 ## [2.0.0] - 2025-04-22
 
