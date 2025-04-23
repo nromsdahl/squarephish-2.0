@@ -44,11 +44,9 @@
                             </div>
                         </div>
 
-                        <p class="text-muted">
-                            <i>QR Code</i> requires <code>&lt;img src="cid:qrcode"&gt;</code> to insert the QR code image.<br/>
-                            <i>ASCII QR Code</i> requires <code>{QR_CODE}</code> to insert the QR code ASCII string.<br/>
-                            <i>URL Link</i> requires <code>{URL}</code> to insert the URL link.
-                        </p>
+                        <p id="qrCodeText" class="text-muted">QR Code requires <code>&lt;img src="cid:qrcode"&gt;</code> to insert the QR code image.</p>
+                        <p id="asciiQrCodeText" class="text-muted">ASCII QR Code requires <code>{QR_CODE}</code> to insert the QR code ASCII string.</p>
+                        <p id="urlLinkText" class="text-muted">URL Link requires <code>{URL}</code> to insert the URL link.</p>
 
                         <button type="button" class="btn btn-outline-secondary" id="uploadHtmlButton"><i class="bi bi-upload me-2"></i>Upload File</button>
                         <input type="file" class="d-none" id="htmlFileInput" accept=".html">
@@ -70,6 +68,36 @@
 {{ define "scripts" }}
          <script>
             document.addEventListener('DOMContentLoaded', function () {
+                // --- Update Email Body Hint Display ---
+                const qrCodeText = document.getElementById('qrCodeText');
+                const asciiQrCodeText = document.getElementById('asciiQrCodeText');
+                const urlLinkText = document.getElementById('urlLinkText');
+
+                function updateDisplay() {
+                    const selectedValue = document.querySelector('input[name="emailBodyType"]:checked').value;
+
+                    qrCodeText.style.display = 'none';
+                    asciiQrCodeText.style.display = 'none';
+                    urlLinkText.style.display = 'none';
+
+                    if (selectedValue === 'qrCode') {
+                        qrCodeText.style.display = '';
+                    } else if (selectedValue === 'asciiQrCode') {
+                        asciiQrCodeText.style.display = '';
+                    } else if (selectedValue === 'urlLink') {
+                        urlLinkText.style.display = '';
+                    }
+                }
+
+                const radioButtons = document.querySelectorAll('input[name="emailBodyType"]');
+                radioButtons.forEach(radio => {
+                    radio.addEventListener('change', updateDisplay);
+                });
+
+                // Initialize display
+                updateDisplay();
+
+
                 // --- Preview Email Body ---
                 const previewButton = document.getElementById('previewButton');
 
