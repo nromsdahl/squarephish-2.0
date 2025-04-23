@@ -1,5 +1,7 @@
 package models
 
+// These are the models for the Microsoft device code flow.
+
 // https://login.microsoftonline.com/organizations/oauth2/v2.0/deviceCode
 // DeviceCodeResponse contains the response for the initialization of the
 // Microsoft device code flow.

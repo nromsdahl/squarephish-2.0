@@ -41,7 +41,7 @@ Once the email is sent to the victim, a goroutine is started that continues to p
 </div>
 
 ```
-INF[2025/04/20 02:29:34] [minnow@victim.com] QR Code Scanned
+INF[2025/04/20 02:29:34] [minnow@victim.com] Link triggered
 INF[2025/04/20 02:29:34] [minnow@victim.com] Initializing device code flow...
 INF[2025/04/20 02:29:34] [minnow@victim.com]     Client ID: 29d9ed98-a469-4536-ade2-f981bc1d605e
 INF[2025/04/20 02:29:34] [minnow@victim.com]     Scope:     .default offline_access profile openid
@@ -86,15 +86,12 @@ example: ./squarephish --config config.json
 Modify the included configuration file `config.json` or use the below template:
 ```json
 {
-    // This is this internal facing admin dashboard
 	"dashboard_server": {
 		"listen_url": "127.0.0.1:8080",
 		"cert_path": "",
 		"key_path": "",
 		"use_tls": false
 	},
-
-    // This is the internet facing server that a QR scan will point to
 	"phish_server": {
 		"listen_url": "0.0.0.0:8443",
 		"cert_path": "server.crt",
@@ -111,7 +108,7 @@ Modify the included configuration file `config.json` or use the below template:
 The dashboard view lets the operator view simple metrics relating to the current campaign. Metrics include the number of emails sent, the number QR codes that have been scanned, and a list of credentials retrieved. Each credential can be viewed in a new tab as a JSON object.
 
 <div align="center">
-    <img src="resc/dashboard-light.png" width="750"></img>
+    <img src="resc/dashboard.png" width="750"></img>
 </div>
 
 <div align="center">
@@ -125,11 +122,15 @@ The configuration pages lets the operator set the core settings for SquarePhish.
 - The device code email body template (used automatically when a QR code is scanned)
 
 <div align="center">
-    <img src="resc/configuration_top-light.png" width="750"></img>
+    <img src="resc/dashboard_configuration.png" width="750"></img>
 </div>
 <br/>
 <div align="center">
-    <img src="resc/configuration_bottom-light.png" width="750"></img>
+    <img src="resc/dashboard_configuration_email-settings.png" width="750"></img>
+</div>
+<br/>
+<div align="center">
+    <img src="resc/dashboard_configuration_entra-settings.png" width="750"></img>
 </div>
 
 <div align="center">
@@ -139,11 +140,11 @@ The configuration pages lets the operator set the core settings for SquarePhish.
 The send email page lets an operator specify a recipient and an initial QR code email template. The operator can then send emails to all recipient(s).
 
 <div align="center">
-    <img src="resc/send_email_top-light.png" width="750"></img>
+    <img src="resc/dashboard_email.png" width="750"></img>
 </div>
 <br/>
 <div align="center">
-    <img src="resc/send_email_bottom-light.png" width="750"></img>
+    <img src="resc/dashboard_email_email-body.png" width="750"></img>
 </div>
 
 <div align="center">

@@ -60,6 +60,14 @@ func LoadConfig() models.ConfigData {
 	emailSubject := queryConfigValue(ctx, "emailSubject", "")
 	emailBody := queryConfigValue(ctx, "emailBody", "")
 
+	// Default to Microsoft Authentication Broker
+	entraClientID := queryConfigValue(ctx, "entraClientID", "29d9ed98-a469-4536-ade2-f981bc1d605e")
+	entraScope := queryConfigValue(ctx, "entraScope", ".default offline_access profile openid")
+	entraTenant := queryConfigValue(ctx, "entraTenant", "organizations")
+
+	// Default to Microsoft Edge on Windows User Agent
+	userAgent := queryConfigValue(ctx, "userAgent", "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36 Edg/135.0.3179.85")
+
 	// --- Populate the struct ---
 	return models.ConfigData{
 		SMTPConfig: models.SMTPConfig{
@@ -76,6 +84,14 @@ func LoadConfig() models.ConfigData {
 			Sender:  emailSender,
 			Subject: emailSubject,
 			Body:    emailBody,
+		},
+		EntraConfig: models.EntraConfig{
+			ClientID: entraClientID,
+			Scope:    entraScope,
+			Tenant:   entraTenant,
+		},
+		RequestConfig: models.RequestConfig{
+			UserAgent: userAgent,
 		},
 		ActivePage: "config",
 		Title:      "Configuration Settings",

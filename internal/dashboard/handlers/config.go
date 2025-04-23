@@ -44,6 +44,7 @@ func SaveConfigHandler(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// Parse all of the form data
 	smtpHost := r.FormValue("smtpHost")
 	smtpPort := r.FormValue("smtpPort")
 	smtpUsername := r.FormValue("smtpUsername")
@@ -55,6 +56,12 @@ func SaveConfigHandler(w http.ResponseWriter, r *http.Request) {
 	emailSender := r.FormValue("emailSender")
 	emailSubject := r.FormValue("emailSubject")
 	emailBody := r.FormValue("emailBody")
+
+	entraClientID := r.FormValue("entraClientID")
+	entraScope := r.FormValue("entraScope")
+	entraTenant := r.FormValue("entraTenant")
+
+	userAgent := r.FormValue("userAgent")
 
 	// Save the configuration data to the database
 	err = database.SaveConfig(models.ConfigData{
@@ -72,6 +79,14 @@ func SaveConfigHandler(w http.ResponseWriter, r *http.Request) {
 			Subject: emailSubject,
 			Sender:  emailSender,
 			Body:    emailBody,
+		},
+		EntraConfig: models.EntraConfig{
+			ClientID: entraClientID,
+			Scope:    entraScope,
+			Tenant:   entraTenant,
+		},
+		RequestConfig: models.RequestConfig{
+			UserAgent: userAgent,
 		},
 	})
 	if err != nil {

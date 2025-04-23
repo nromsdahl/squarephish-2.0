@@ -1,4 +1,9 @@
 name: SquarePhish2 Release
+# This workflow is used to release a new version of SquarePhish2.
+# It is triggered when a release is created.
+# The workflow will build the binary for the current platform(s) and upload it to the release.
+# It will also generate a SHA256 hashes of the releases and add it to the release description.
+# Reference: https://github.com/gophish/gophish/blob/master/.github/workflows/release.yml
 
 on:
   release:
@@ -124,19 +129,19 @@ jobs:
           AUTH_HEADER: "Authorization: token ${{ secrets.GITHUB_TOKEN }}"
           RELEASE_URL: ${{ github.event.release.url }}
         run: |
-          HASH_TABLE="| SHA256 Hash | Filename |"
-          HASH_TABLE="${HASH_TABLE}\n|-----|-----|\n"
+          CURRENT_DESCRIPTION=$(curl -s -H "${API_HEADER}" -H "${AUTH_HEADER}" "${RELEASE_URL}" | jq -r '.body')
+          HASH_TABLE="| SHA256 Hash | Filename |\n|-----|-----|\n"
           for FILE in releases/*
           do
             FILENAME=$(basename ${FILE})
             HASH=$(sha256sum ${FILE} | cut -d ' ' -f 1)
             HASH_TABLE="${HASH_TABLE}|${HASH}|${FILENAME}|\n"
           done
-          echo "${HASH_TABLE}"
+          UPDATED_DESCRIPTION="${CURRENT_DESCRIPTION}\n\n${HASH_TABLE}"
           curl \
             -XPATCH \
             -H "${API_HEADER}" \
             -H "${AUTH_HEADER}" \
             -H "Content-Type: application/json" \
-            -d "{\"body\": \"${HASH_TABLE}\"}" \
+            -d "{\"body\": \"${UPDATED_DESCRIPTION}\"}" \
             "${RELEASE_URL}";
