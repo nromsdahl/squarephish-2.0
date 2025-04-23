@@ -75,8 +75,9 @@ jobs:
               cp $BINARY .;
               zip -r releases/$(basename $RELEASE_DIR).zip \
                 $(basename ${BINARY}) \
+                templates \
+                static \
                 scripts \
-                web \
                 pretexts \
                 config.json \
                 VERSION \
