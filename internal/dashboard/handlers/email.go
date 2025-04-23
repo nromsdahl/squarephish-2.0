@@ -53,7 +53,7 @@ func SendEmailHandler(w http.ResponseWriter, r *http.Request) {
 
 	recipientString := r.FormValue("recipients")
 	emailBody := r.FormValue("emailBody")
-	ascii := r.FormValue("emailBodyASCII")
+	emailBodyType := r.FormValue("emailBodyType")
 
 	// Clean up recipients and replace newlines with commas
 	// for uniform parsing.
@@ -88,9 +88,9 @@ func SendEmailHandler(w http.ResponseWriter, r *http.Request) {
 		var err error
 
 		// Generate QR code based on ASCII or image
-		if ascii == "true" {
+		if emailBodyType == "asciiQrCode" {
 			qrCodeASCII, err = email.GenerateQRCodeASCII(url)
-		} else {
+		} else if emailBodyType == "qrCode" {
 			qrCode, err = email.GenerateQRCode(url, 256)
 		}
 		if err != nil {
@@ -99,11 +99,15 @@ func SendEmailHandler(w http.ResponseWriter, r *http.Request) {
 		}
 
 		// Send email with QR code based on ASCII or image
-		if qrCodeASCII != "" {
-			emailBody = strings.Replace(emailBody, "{QR_CODE}", qrCodeASCII, -1)
-			err = email.SendEmail(smtpConfig, emailConfig.Sender, recipients, emailConfig.Subject, emailBody)
-		} else {
+		if emailBodyType == "qrCode" {
 			err = email.SendQREmail(smtpConfig, emailConfig.Sender, recipients, emailConfig.Subject, emailBody, qrCode)
+		} else {
+			if emailBodyType == "asciiQrCode" {
+				emailBody = strings.Replace(emailBody, "{QR_CODE}", qrCodeASCII, -1)
+			} else {
+				emailBody = strings.Replace(emailBody, "{URL}", url, -1)
+			}
+			err = email.SendEmail(smtpConfig, emailConfig.Sender, recipients, emailConfig.Subject, emailBody)
 		}
 		if err != nil {
 			utils.RespondWithErrorMessage(w, "Failed to send email to "+recipient, err)

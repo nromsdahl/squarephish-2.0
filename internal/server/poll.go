@@ -1,6 +1,7 @@
 package server
 
 import (
+	"crypto/tls"
 	"encoding/json"
 	"fmt"
 	"io"
@@ -19,11 +20,12 @@ import (
 // Parameters:
 //   - email: The email address of the authenticating user.
 //   - deviceCode: The device code JSON object.
+//   - entraConfig: The Entra configuration.
+//   - requestConfig: The request configuration.
 //
 // It returns nothing.
-func authPoll(email string, deviceCode models.DeviceCodeResponse) {
-	tokenURL := "https://login.microsoftonline.com/organizations/oauth2/v2.0/token"
-	clientID := "29d9ed98-a469-4536-ade2-f981bc1d605e" // Microsoft Authentication Broker
+func authPoll(email string, deviceCode models.DeviceCodeResponse, entraConfig models.EntraConfig, requestConfig models.RequestConfig) {
+	tokenURL := "https://login.microsoftonline.com/" + entraConfig.Tenant + "/oauth2/v2.0/token"
 	grantType := "urn:ietf:params:oauth:grant-type:device_code"
 	contentType := "application/x-www-form-urlencoded"
 
@@ -34,7 +36,7 @@ func authPoll(email string, deviceCode models.DeviceCodeResponse) {
 	tokenParams := url.Values{}
 	tokenParams.Set("grant_type", grantType)
 	tokenParams.Set("code", deviceCode.DeviceCode)
-	tokenParams.Set("client_id", clientID)
+	tokenParams.Set("client_id", entraConfig.ClientID)
 
 	// Encode the parameters into a URL-encoded string
 	// (e.g., "client_id=...&scope=...")
@@ -54,7 +56,24 @@ func authPoll(email string, deviceCode models.DeviceCodeResponse) {
 		// http.Post requires the request body as an io.Reader.
 		tokenBodyReader := strings.NewReader(tokenPostData)
 
-		resp, err = http.Post(tokenURL, contentType, tokenBodyReader)
+		// Create a custom HTTP client
+		client := &http.Client{
+			Timeout: 15 * time.Second,
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{InsecureSkipVerify: true},
+			},
+		}
+
+		// Create a custom HTTP request with the specified User Agent
+		req, err := http.NewRequest("POST", tokenURL, tokenBodyReader)
+		if err != nil {
+			return
+		}
+
+		req.Header.Set("Content-Type", contentType)
+		req.Header.Set("User-Agent", requestConfig.UserAgent)
+
+		resp, err = client.Do(req)
 		if err != nil {
 			return
 		}

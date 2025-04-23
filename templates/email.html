@@ -12,7 +12,7 @@
                     <div class="card-body">
                         <div class="mb-3">
                             <label for="recipientsTextarea" class="form-label">Recipients</label>
-                            <textarea class="form-control" id="recipientsTextarea" name="recipients" rows="2" placeholder="Enter recipient emails, separated by new lines"></textarea>
+                            <textarea class="form-control" id="recipientsTextarea" name="recipients" rows="2" placeholder="Enter recipient emails, separated by a comma or a new line"></textarea>
                         </div>
                         <button type="button" class="btn btn-outline-secondary" id="uploadRecipientsFileButton"><i class="bi bi-upload me-2"></i>Upload File</button>
                         <input type="file" class="d-none" id="recipientsFileInput" multiple>
@@ -21,22 +21,33 @@
 
                 <div class="card shadow-sm mb-4">
                     <div class="card-header">
-                        <h5 class="mb-0">QR Code Email Body</h5>
+                        <h5 class="mb-0">Phishing Email</h5>
                     </div>
                     <div class="card-body">
                         <div class="mb-3">
-                            <label for="emailBody" class="form-label">Email Body (Raw HTML)</label>
-                            <textarea class="form-control" id="emailBody" name="emailBody" rows="10" placeholder="Enter raw HTML for the email body"></textarea>
+                            <label for="emailBody" class="form-label">Email Body</label>
+                            <textarea class="form-control" id="emailBody" name="emailBody" rows="10" placeholder="Enter the initial phishing email body"></textarea>
                         </div>
 
-                        <div class="form-check form-switch">
-                            <input class="form-check-input" type="checkbox" role="switch" id="emailBodyASCII" name="emailBodyASCII" value="true">
-                            <label class="form-check-label" for="emailBodyASCII">ASCII QR Code</label>
+                        <div class="d-flex">
+                            <div class="form-check me-3">
+                                <input class="form-check-input" type="radio" name="emailBodyType" id="qrCode" value="qrCode" checked>
+                                <label class="form-check-label" for="qrCode">QR Code</label>
+                            </div>
+                            <div class="form-check me-3">
+                                <input class="form-check-input" type="radio" name="emailBodyType" id="asciiQrCode" value="asciiQrCode">
+                                <label class="form-check-label" for="asciiQrCode">ASCII QR Code</label>
+                            </div>
+                            <div class="form-check">
+                                <input class="form-check-input" type="radio" name="emailBodyType" id="urlLink" value="urlLink">
+                                <label class="form-check-label" for="urlLink">URL Link</label>
+                            </div>
                         </div>
 
                         <p class="text-muted">
-                            QR code email body requires <code>&lt;img src="cid:qrcode"&gt;</code> to insert the QR code image.<br/>
-                            QR code email body requires <code>{QR_CODE}</code> to insert the QR code ASCII string.
+                            <i>QR Code</i> requires <code>&lt;img src="cid:qrcode"&gt;</code> to insert the QR code image.<br/>
+                            <i>ASCII QR Code</i> requires <code>{QR_CODE}</code> to insert the QR code ASCII string.<br/>
+                            <i>URL Link</i> requires <code>{URL}</code> to insert the URL link.
                         </p>
 
                         <button type="button" class="btn btn-outline-secondary" id="uploadHtmlButton"><i class="bi bi-upload me-2"></i>Upload File</button>
