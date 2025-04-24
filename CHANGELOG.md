@@ -2,6 +2,17 @@
 All notable changes to this project will be documented in this file.
 
 
+## [2.0.2] - 2025-04-23
+
+### Added
+
+- Suppot for automatic authentication URL retrieval via [@denniskniep](https://github.com/denniskniep) [DeviceCodePhishing](https://github.com/denniskniep/DeviceCodePhishing)
+
+### Fixed
+
+- Several minor bug fixes in the phishing server that prevented proper error handling
+
+
 ## [2.0.1] - 2025-04-23
 
 ### Added

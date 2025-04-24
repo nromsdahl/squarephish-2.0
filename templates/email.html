@@ -57,6 +57,28 @@
                     </div>
                 </div>
 
+                <div class="card shadow-sm mb-4">
+                    <div class="card-header">
+                        <h5 class="mb-0">Advanced Settings</h5>
+                    </div>
+
+                    <div class="card-body">
+                        <div class="mb-3">
+                            <div class="form-check form-switch">
+                                <input class="form-check-input" type="checkbox" role="switch" id="auto" name="auto" value="true">
+                                <label class="form-check-label" for="auto">Automatic authentication URL retrieval</label>
+                            </div>
+                        </div>
+
+                        <p class="text-muted">
+                            If automatic retrieval is enabled, SquarePhish will take the retrieved device code and automatically generate the authentication URL for the victim.
+                            This will remove the need to send the victim the device code via email.
+                            The victim will be redirected to the authentication URL directly from the link clicked or QR code scanned.
+                            If this fails, SquarePhish will fallback to sending the device code email as normal.
+                        </p>
+                    </div>
+                </div>
+
                 <div class="mt-4 pt-3 border-top">
                     <button type="submit" class="btn btn-primary btn-lg">
                         <i class="bi bi-send-fill me-2"></i>Send Email
