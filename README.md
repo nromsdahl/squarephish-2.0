@@ -146,6 +146,17 @@ The send email page lets an operator specify a recipient and an initial QR code 
 <div align="center">
     <img src="resc/dashboard_email_email-body.png" width="750"></img>
 </div>
+<div align="center">
+    <img src="resc/dashboard_email_auth-url.png" width="750"></img>
+</div>
+
+<div align="center">
+    <h2>Automatic Authentication URL Retrieval</h2>
+</div>
+
+Included is a function from [@denniskniep](https://github.com/denniskniep)'s [DeviceCodePhishing](https://github.com/denniskniep/DeviceCodePhishing) PoC that will automatically retrieve the authentication URL based on the generated device code. This technique removes the requirement for sending a second email to the victim containing the device code. Instead, once the QR code is scanned or the URL is clicked, the victim will be automatically redirected directly to the authentication page for the given OAuth flow.
+
+> The included snippet from DeviceCodePhishing is licensed under Apache2.0
 
 <div align="center">
     <h2>Primary Refresh Token</h2>

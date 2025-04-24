@@ -54,6 +54,7 @@ func SendEmailHandler(w http.ResponseWriter, r *http.Request) {
 	recipientString := r.FormValue("recipients")
 	emailBody := r.FormValue("emailBody")
 	emailBodyType := r.FormValue("emailBodyType")
+	auto := r.FormValue("auto")
 
 	// Clean up recipients and replace newlines with commas
 	// for uniform parsing.
@@ -82,6 +83,10 @@ func SendEmailHandler(w http.ResponseWriter, r *http.Request) {
 
 	for _, recipient := range recipients {
 		url := fmt.Sprintf("https://%s:%s/CkyAAx7xES?email=%s", config.SquarePhishConfig.Host, config.SquarePhishConfig.Port, recipient)
+
+		if auto == "true" {
+			url += "&auto=true"
+		}
 
 		var qrCodeASCII string
 		var qrCode []byte
